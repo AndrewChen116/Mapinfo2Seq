@@ -1,0 +1,8 @@
+.Rproj.user
+.Rhistory
+.RData
+.Ruserdata
+rGADEM.R
+crawler_temp.R
+datasets/
+output/
