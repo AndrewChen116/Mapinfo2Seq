@@ -1,7 +1,8 @@
-genome_seq_crawler <- function(df, db = "hg38", applyParallel=F, core=4){
+genome_seq_crawler <- function(df, applyParallel=F, core=4){
   require(parallel)
   
   id.set <- df$id %>% as.character()
+  db.set <- df$specie %>% as.character()
   chr.set <- df$chr %>% as.character() %>% toupper() %>% str_replace_all("CHR","")
   start.set <- df$start %>% as.numeric()
   end.set <- df$end %>% as.numeric()
@@ -13,6 +14,7 @@ genome_seq_crawler <- function(df, db = "hg38", applyParallel=F, core=4){
     
     
     id <- id.set[n]
+    db <- db.set[n]
     chr <- chr.set[n]
     start <- start.set[n]
     end <- end.set[n]
@@ -45,6 +47,7 @@ genome_seq_crawler <- function(df, db = "hg38", applyParallel=F, core=4){
   if(applyParallel){
     
     applied.env <- new.env()
+    applied.env[["db.set"]] = db.set
     applied.env[["id.set"]] = id.set
     applied.env[["chr.set"]] = chr.set
     applied.env[["start.set"]] = start.set
@@ -52,6 +55,7 @@ genome_seq_crawler <- function(df, db = "hg38", applyParallel=F, core=4){
     applied.env[["strand.set"]] = strand.set
     
     cl <- makeCluster(core)
+    clusterExport(cl, "db.set", envir = applied.env)
     clusterExport(cl, "id.set", envir = applied.env)
     clusterExport(cl, "chr.set", envir = applied.env)
     clusterExport(cl, "start.set", envir = applied.env)
@@ -72,3 +76,4 @@ genome_seq_crawler <- function(df, db = "hg38", applyParallel=F, core=4){
   
   return(content.lt) 
 }
+
