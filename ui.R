@@ -60,11 +60,12 @@ ui <- navbarPage(
           width = 3
         ),
         column(
-          downloadButton("downloadData", "Download"),
+          downloadButton("downloadData", "Output"),
           width = 3
         ),
         column(
-          
+          actionButton(inputId="doLogo", label=" LOGO",
+                       icon=icon(name = "fa-duotone fa-chart-simple")),
           width = 3
         )
       ),
@@ -77,6 +78,7 @@ ui <- navbarPage(
       br(),
       ## version info
       h6("20221110_KLC_v0.1.1",align="right",style = "color:#6C6C6C"),
+      h6("Powered by UCSC genome browser",align="right",style = "color:#6C6C6C"),
       ## width of sidebarPanel
       width = 3
       
@@ -96,6 +98,11 @@ ui <- navbarPage(
         tabPanel(
           h5("Sequence result",style = "color:#97CBFF"),
           dataTableOutput("seq_table"),
+          width = 1
+        ),
+        tabPanel(
+          h5("LOGO plot",style = "color:#97CBFF"),
+          #dataTableOutput("seq_table"),
           width = 1
         ),
       ),

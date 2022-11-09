@@ -30,7 +30,7 @@ server <- function(input, output, session) {
   })
   
   # Mapinfo table input 
-  mapinfo_table <- eventReactive(c(input$doSearch, input$doExample),{
+  mapinfo_table <- eventReactive(c(input$doSearch, input$doExample, input$mapinfo_file),{
     ## record the start time
     t1 <- proc.time()
     
@@ -39,7 +39,7 @@ server <- function(input, output, session) {
       {
         if(!is.null(input$mapinfo_file$datapath) & !doExample){
           mapinfo.df <- input$mapinfo_file$datapath %>% read.csv(sep = "\t") 
-          colnames(mapinfo.df) <- c("id","chr","start","end","strand")
+          colnames(mapinfo.df) <- c("id","species","chr","start","end","strand")
           cat("Imported mapinfo file checked\n")
         }else if(doExample){
           cat("Example mapinfo file checked\n")
@@ -73,8 +73,7 @@ server <- function(input, output, session) {
       {
         if(!is.null(mapinfo.df)){
           cat("Comparing ...\n")
-          seq.lt <- genome_seq_crawler(mapinfo.df, db="hg38",
-                                       applyParallel=input$doParallel, core=input$ncore)
+          seq.lt <- genome_seq_crawler(mapinfo.df, applyParallel=input$doParallel, core=input$ncore)
           seq.df <- data.frame(
             Seq = seq.lt %>% unlist
           )
@@ -97,7 +96,7 @@ server <- function(input, output, session) {
     ## record the execution time
     t2 <- proc.time()
     t <- t2-t1
-    print_time <- paste0("Execution time: ",round(t[3][[1]],2), " s")
+    print_time <- paste0("< Execution time: ",round(t[3][[1]],2), " s >")
     
     ## reset doExample
     cat("Reset example setting\n")
@@ -114,10 +113,17 @@ server <- function(input, output, session) {
   result_check <- eventReactive(c(input$doSearch),{
     tryCatch(
       {
-        if(!is.null(seq_table()$output)){
-          txt <- paste0('<h6><p style="color:#97CBFF">Crawler finished!</p></h6>')
-        }else{
-          txt <- '<h6><p style="color:#CE0000">Error! please check format! </p></h6>'        }
+        if(is.null(mapinfo_table()$mapinfo)){
+          txt <- '<h6><p style="color:#FFD306">== Please input Mapinfo ==</p></h6>'        
+          return(txt)
+        }
+        if(is.null(seq_table()$output)){
+          txt <- '<h6><p style="color:#CE0000">== Error! please check format! ==</p></h6>'  
+          return(txt)
+        }
+      
+        txt <- paste0('<h6><p style="color:#00DB00">== Crawler finished! ==</p></h6>')
+        return(txt)
       },
       warning = function(war){
         print(war)
