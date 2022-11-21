@@ -146,7 +146,7 @@ server <- function(input, output, session) {
           txt <- '<h6><p style="color:#CE0000">== Blank detected! ==</p></h6>'        
           return(txt)
         }
-        if(sum(mapinfo_table()$mapinfo$strand %in% c("+","-"))){
+        if(sum(!mapinfo_table()$mapinfo$strand %in% c("+","-"))){
           txt <- '<h6><p style="color:#CE0000">== Wrong format in strand column! ==</p></h6>'        
           return(txt)
         }
