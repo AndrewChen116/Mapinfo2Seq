@@ -1,3 +1,4 @@
+rm(list = ls(), envir = globalenv())
 genome_seq_crawler <- function(df, applyParallel=F, core=4){
   require(parallel)
   

@@ -70,6 +70,7 @@ ui <- navbarPage(
         )
       ),
       ## print execution time
+      htmlOutput("input_check") %>% h6(.,align="center"),
       htmlOutput("result_check") %>% h6(.,align="center"),
       htmlOutput("print_time") %>% h6(.,align="center",style = "color:#B3D9D9"),
       br(),

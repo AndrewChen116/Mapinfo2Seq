@@ -1,36 +1,46 @@
-rm(list = ls())
 source("FUN_seqCrawler.R")
 options(shiny.maxRequestSize=30*1024^2) 
 
 server <- function(input, output, session) {
   
+  # cold start
+  # observeEvent(,{
+  #   rm(list = ls(), envir = globalenv())
+  # })
+  
   # load the example Rdata
-  observeEvent(c(input$doSearch, input$doExample),{
-    if(length(ls(envir = globalenv()))==1){
-      load("example.RData")
-      assign("mapinfo.df",mapinfo.df,globalenv())
-      cat("Import example\n")
+  observeEvent(c(input$doExample, input$mapinfo_file),{
+    load("example.RData")
+    if(sum(ls(envir = globalenv()) %in% "cold_start")){
+      assign("cold_start", FALSE, globalenv())
+    }else{
+      assign("cold_start", TRUE, globalenv())
     }
+    assign("mapinfo.df",mapinfo.df,globalenv())
+    assign("doExample",FALSE,globalenv())
+    cat("Rdata imported!\n")
   })
   
   # check if apply example
-  observeEvent(input$doExample,{
-    assign("doExample",TRUE,globalenv())
-    cat("Example setting checked\n")
-  })
+  # observeEvent(input$doExample,{
+  #   assign("doExample",T,globalenv())
+  #   cat(ls(envir = globalenv()),"\n")
+  #   cat("Example setting checked\n")
+  # })
   
   # check the doExample status
-  observeEvent(c(input$doSearch, input$doExample),{
-    if(sum(ls(envir = globalenv()) %in% "doExample")){
-      cat("Import example:", doExample,"\n")
+  observeEvent(c(input$doExample),{
+    if(cold_start){
+       assign("doExample",FALSE,globalenv())
     }else{
-      assign("doExample",FALSE,globalenv())
-      cat("import example:", doExample,"\n")
+      assign("doExample",TRUE,globalenv())
     }
+    cat("Cold Start:", cold_start,"\n")
+    cat("Import example:", doExample,"\n")
   })
   
   # Mapinfo table input 
-  mapinfo_table <- eventReactive(c(input$doSearch, input$doExample, input$mapinfo_file),{
+  mapinfo_table <- eventReactive(c(input$doExample, input$mapinfo_file, input$doSearch),{
     ## record the start time
     t1 <- proc.time()
     
@@ -40,7 +50,10 @@ server <- function(input, output, session) {
         if(!is.null(input$mapinfo_file$datapath) & !doExample){
           mapinfo.df <- input$mapinfo_file$datapath %>% read.csv(sep = "\t") 
           colnames(mapinfo.df) <- c("id","species","chr","start","end","strand")
+          mapinfo.df$start <- mapinfo.df$start %>% as.numeric()
+          mapinfo.df$end <- mapinfo.df$end %>% as.numeric()
           cat("Imported mapinfo file checked\n")
+          
         }else if(doExample){
           cat("Example mapinfo file checked\n")
         }else{
@@ -53,7 +66,7 @@ server <- function(input, output, session) {
       },
       error = function(err){
         print(conditionMessage(err));
-        mapinfo.df <- NULL
+        mapinfo.df <- conditionMessage(err)
       }
     )
     list(
@@ -110,11 +123,56 @@ server <- function(input, output, session) {
   })
   
   # check result
-  result_check <- eventReactive(c(input$doSearch),{
+  input_check <- eventReactive(c(input$doExample, input$mapinfo_file),{
     tryCatch(
       {
         if(is.null(mapinfo_table()$mapinfo)){
           txt <- '<h6><p style="color:#FFD306">== Please input Mapinfo ==</p></h6>'        
+          return(txt)
+        }
+        if(!is.data.frame(mapinfo_table()$mapinfo)){
+          txt <- '<h6><p style="color:#CE0000">== Format error! ==</p></h6>'        
+          return(txt)
+        }
+        if(ncol(mapinfo_table()$mapinfo) != 6){
+          txt <- '<h6><p style="color:#CE0000">== Wrong col number! ==</p></h6>'        
+          return(txt)
+        }
+        if(sum(is.na(mapinfo_table()$mapinfo))){
+          txt <- '<h6><p style="color:#CE0000">== NA detected! (may caused by wrong number format) ==</p></h6>'        
+          return(txt)
+        }
+        if(sum(mapinfo_table()$mapinfo == "")){
+          txt <- '<h6><p style="color:#CE0000">== Blank detected! ==</p></h6>'        
+          return(txt)
+        }
+        if(sum(mapinfo_table()$mapinfo$strand %in% c("+","-"))){
+          txt <- '<h6><p style="color:#CE0000">== Wrong format in strand column! ==</p></h6>'        
+          return(txt)
+        }
+        if(doExample){
+          txt <- '<h6><p style="color:#00DB00">== Example prepared! ==</p></h6>'
+          return(txt)
+        }
+      
+        txt <- '<h6><p style="color:#00DB00">== Data prepared! ==</p></h6>'
+        return(txt)
+      },
+      warning = function(war){
+        print(war)
+        txt <- NULL
+      },
+      error = function(err){
+        print(conditionMessage(err));
+        txt <- NULL
+      }
+    )
+  })
+  result_check <- eventReactive(c(input$doSearch),{
+    tryCatch(
+      {
+        if(cold_start){
+          txt <- '<h6><p style="color:#CE0000"></p></h6>'  
           return(txt)
         }
         if(is.null(seq_table()$output)){
@@ -161,6 +219,7 @@ server <- function(input, output, session) {
   )
   
   ## check result
+  output$input_check <- renderText(input_check())
   output$result_check <- renderText(result_check())
   
   ## show execution time
