@@ -9,16 +9,34 @@ server <- function(input, output, session) {
   # })
   
   # load the example Rdata
-  observeEvent(c(input$doExample, input$mapinfo_file),{
+  observeEvent(c(input$doExample),{
+    ## renew Rdata
     load("example.RData")
+    assign("mapinfo.df",mapinfo.df,globalenv())
+    cat("Rdata imported!\n")
+    
+    ## detect coldStart status
     if(sum(ls(envir = globalenv()) %in% "cold_start")){
       assign("cold_start", FALSE, globalenv())
     }else{
       assign("cold_start", TRUE, globalenv())
     }
-    assign("mapinfo.df",mapinfo.df,globalenv())
-    assign("doExample",FALSE,globalenv())
-    cat("Rdata imported!\n")
+    
+    ## update doExample status
+    if(cold_start){
+      assign("doExample",FALSE,globalenv())
+      cat("coldStart detected!\n")
+      cat("doExample switch OFF\n")
+    }else{
+      assign("doExample",TRUE,globalenv())
+      cat("doExample switch ON\n")
+    }
+    
+    ## log
+    cat("----------------------\n")
+    cat("Cold Start:", cold_start,"\n")
+    cat("Import example:", doExample,"\n")
+    cat("----------------------\n")
   })
   
   # check if apply example
@@ -27,16 +45,16 @@ server <- function(input, output, session) {
   #   cat(ls(envir = globalenv()),"\n")
   #   cat("Example setting checked\n")
   # })
-  
-  # check the doExample status
-  observeEvent(c(input$doExample),{
-    if(cold_start){
-       assign("doExample",FALSE,globalenv())
-    }else{
-      assign("doExample",TRUE,globalenv())
-    }
-    cat("Cold Start:", cold_start,"\n")
-    cat("Import example:", doExample,"\n")
+  # 
+  # # check the doExample status
+  # observeEvent(c(input$doExample),{
+  #   
+  # })
+  # 
+  # check the input file status
+  observeEvent(c(input$mapinfo_file),{
+    assign("doExample",FALSE,globalenv())
+    cat("doExample switch OFF\n")
   })
   
   # Mapinfo table input 
@@ -69,6 +87,11 @@ server <- function(input, output, session) {
         mapinfo.df <- conditionMessage(err)
       }
     )
+    
+    ## check status
+    cat("*****\n")
+
+    ## return
     list(
       "mapinfo"=mapinfo.df,
       "t1"=t1
@@ -114,6 +137,7 @@ server <- function(input, output, session) {
     ## reset doExample
     cat("Reset example setting\n")
     assign("doExample",FALSE,globalenv())
+    
     ## return
     cat("******************** \n")
     list(
