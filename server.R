@@ -3,11 +3,6 @@ options(shiny.maxRequestSize=30*1024^2)
 
 server <- function(input, output, session) {
   
-  # cold start
-  # observeEvent(,{
-  #   rm(list = ls(), envir = globalenv())
-  # })
-  
   # load the example Rdata
   observeEvent(c(input$doExample),{
     ## renew Rdata
@@ -39,18 +34,6 @@ server <- function(input, output, session) {
     cat("----------------------\n")
   })
   
-  # check if apply example
-  # observeEvent(input$doExample,{
-  #   assign("doExample",T,globalenv())
-  #   cat(ls(envir = globalenv()),"\n")
-  #   cat("Example setting checked\n")
-  # })
-  # 
-  # # check the doExample status
-  # observeEvent(c(input$doExample),{
-  #   
-  # })
-  # 
   # check the input file status
   observeEvent(c(input$mapinfo_file),{
     assign("doExample",FALSE,globalenv())
