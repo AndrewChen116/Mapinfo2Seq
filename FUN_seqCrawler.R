@@ -3,7 +3,7 @@ genome_seq_crawler <- function(df, applyParallel=F, core=4){
   require(parallel)
   
   id.set <- df$id %>% as.character()
-  db.set <- df$specie %>% as.character()
+  db.set <- df$species %>% as.character()
   chr.set <- df$chr %>% as.character() %>% toupper() %>% str_replace_all("CHR","")
   start.set <- df$start %>% as.numeric()
   end.set <- df$end %>% as.numeric()
@@ -12,7 +12,6 @@ genome_seq_crawler <- function(df, applyParallel=F, core=4){
   Apply_FUN <- function(n){
     require(tidyverse)
     require(XML)
-    
     
     id <- id.set[n]
     db <- db.set[n]
