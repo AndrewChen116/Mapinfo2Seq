@@ -27,7 +27,7 @@ genome_seq_crawler <- function(df, applyParallel=F, core=4){
     
     request_url <-  paste0(
       "http://genome.ucsc.edu/cgi-bin/hgc?",
-      "hgsid=1482964187_qN4AP7ePlVnsgTBTnU0shqmdFWq7&g=htcGetDna2&",
+      "hgsid=1715286470_Lm1S0iOuLAqMkwq6b9ATFbHihMHo&g=htcGetDna2&",
       "table=&i=mixed&o=",(start-1),"&l=",(start-1),"&r=",end,
       "&getDnaPos=chr",chr,":",start,"-",end,
       "&db=",db, "&hgSeq.cdsExon=1&&hgSeq.padding5=0",
